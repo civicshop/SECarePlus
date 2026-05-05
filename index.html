@@ -310,13 +310,19 @@
         }
       });
     } catch (error) {
-      Swal.close();
-      submitBtn.disabled = false;
-      console.error(error);
-      alert('เกิดข้อผิดพลาดในการประมวลผลรูปภาพ');
-    }
-  }
+  Swal.close();
+  submitBtn.disabled = false;
 
+  console.error("ERROR DETAIL:", error);
+
+  Swal.fire({
+    icon: 'error',
+    title: 'เกิดข้อผิดพลาด',
+    text: error.message || 'ไม่ทราบสาเหตุ',
+    confirmButtonText: 'ตกลง'
+  });
+}
+    
   document.addEventListener("DOMContentLoaded", function () {
     liff.init({
       liffId: '2007065360-n1loYJ1G',
