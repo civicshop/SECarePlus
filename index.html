@@ -1,380 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SE Care+</title>
 
-  <!-- Preconnect for faster loading -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="preconnect" href="https://code.jquery.com" crossorigin />
-
-  <!-- Google Fonts: Kanit -->
   <link href="https://fonts.googleapis.com/css2?family=Kanit&display=swap" rel="stylesheet" />
-
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet" />
 
   <style>
-    body {
-      font-family: 'Kanit', sans-serif;
-      background-size: cover;
-      background-color: white;
-    }
-
-    .container {
-      max-width: 600px;
-    }
-
-    ::placeholder {
-      color: #cccccc !important;
-      opacity: 1;
-    }
-
-    :-ms-input-placeholder {
-      color: #cccccc !important;
-    }
-
-    ::-ms-input-placeholder {
-      color: #cccccc !important;
-    }
-
-    select.form-select {
-      font-family: inherit;
-      font-size: 16px;
-      appearance: none;
-      padding: 8px;
-      border-radius: 5px;
-    }
-
-    select.form-select option {
-      font-family: inherit;
-      font-size: 16px;
-    }
-
+    body { font-family: 'Kanit', sans-serif; background: #fff; }
+    .container { max-width: 600px; }
     button[type="submit"] {
-      width: 50%;
-      margin: 0 auto;
-      padding: 2%;
-      background: #00315F;
-      border: none;
-      border-radius: 10px;
-      color: #fff;
-      cursor: pointer;
+      width: 50%; margin: 0 auto; padding: 10px;
+      background: #00315F; border: none; border-radius: 10px; color: #fff;
     }
   </style>
 </head>
 
 <body>
-  <center>
-    <br />
-    <img src="https://lh3.googleusercontent.com/d/1tqIcibN2LgEr8ct8cm3LLHhHoFh1CqaN" style="width:100px; height:auto; padding-bottom: 10px;">
-    <div class="form-group mb-2">
-      <label for="searchtext">
-        <h3>แจ้งซ่อมออนไลน์</h3>
-      </label>
-    </div>
-  </center>
 
-  <div class="container list">
-    <form id="myForm" class="needs-validation my-4" novalidate>
-      <div class="row justify-content-start g-3">
-
-        <div class="form-group">
-          <label for="project">โครงการ</label>
-          <select class="form-select" name="project" id="project" required>
-            <option selected disabled value="">เลือก</option>
-            <option value="ดิ อิเธอร์นิตี้ กรีนวู้ด รังสิต-วงแหวน">ดิ อิเธอร์นิตี้ กรีนวู้ด รังสิต-วงแหวน</option>
-            <option value="อิเธอร์นิตี้ ทาวน์ พริมโรส วัชรพล">อิเธอร์นิตี้ ทาวน์ พริมโรส วัชรพล</option>
-            <option value="ดิ อิเธอร์นิตี้ โกรฟ สายไหม">ดิ อิเธอร์นิตี้ โกรฟ สายไหม</option>
-            <option value="ดิ อิเธอร์นิตี้ เวอร์ดัวร์ พระราม 9">ดิ อิเธอร์นิตี้ เวอร์ดัวร์ พระราม 9</option>
-            <option value="ดิ อิเธอร์นิตี้ อาร์ค สุขาภิบาล 5">ดิ อิเธอร์นิตี้ อาร์ค สุขาภิบาล 5</option>
-            <option value="เดอะ เชดด์ สาทร">เดอะ เชดด์ สาทร</option>
-            <option value="เดอะ คราวน์ เรสซิเดนท์เซส พระราม 4">เดอะ คราวน์ เรสซิเดนท์เซส พระราม 4</option>
-          </select>
-          <div class="invalid-feedback">กรุณาเลือกโครงการ</div>
-        </div>
-
-        <div class="form-group">
-          <label for="plot">บ้านเลขที่</label>
-          <input type="text" id="plot" name="plot" class="form-control" placeholder="123/456" required />
-          <div class="invalid-feedback">กรุณากรอกบ้านเลขที่</div>
-        </div>
-
-        <div class="form-group">
-          <label for="name">ผู้แจ้ง</label>
-          <input type="text" id="name" name="name" class="form-control" placeholder="ชื่อผู้ติดต่อ" required />
-          <div class="invalid-feedback">กรุณากรอกชื่อผู้ติดต่อ</div>
-        </div>
-
-        <div class="form-group">
-          <label for="tel">โทรศัพท์</label>
-          <input type="number" id="tel" name="tel" class="form-control" placeholder="0888888888" required />
-          <div class="invalid-feedback">กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลัก)</div>
-        </div>
-
-        <div class="form-group">
-          <label for="defect">รายละเอียดปัญหา</label>
-          <textarea id="defect" name="defect" class="form-control" rows="2" placeholder="โปรดระบุรายละเอียดปัญหา..." required></textarea>
-          <div class="invalid-feedback">กรุณาระบุรายละเอียดปัญหา</div>
-        </div>
-
-        <div class="form-group">
-          <label for="file">อัปโหลดรูปภาพ (นามสกุล jpg หรือ png ขนาดไม่เกิน 5 MB)</label>
-          <input type="file" id="file" name="file" class="form-control" accept="image/*" required />
-          <div class="invalid-feedback">กรุณาอัปโหลดไฟล์ที่เป็นรูปภาพ (นามสกุล jpg หรือ png ขนาดไม่เกิน 5 MB)</div>
-        </div>
-
-        <div class="form-group text-center">
-          <button type="submit"><i class="bi bi-send-fill"></i>&nbsp;ส่งข้อมูลแจ้งซ่อม</button>
-        </div>
-
-      </div>
-    </form>
-  </div>
-
+<center>
   <br />
-  <div class="text-center p-4 col-12 mt-4" style="background-color: rgba(0, 0, 0, 0.05);">
-    PASSION FOR LIVING WELL | SATHAPORN ESTATE
+  <img src="https://drive.google.com/uc?id=1tqIcibN2LgEr8ct8cm3LLHhHoFh1CqaN" width="100">
+  <h3>แจ้งซ่อมออนไลน์</h3>
+</center>
+
+<div class="container">
+<form id="myForm" class="needs-validation" novalidate>
+
+  <select class="form-select mb-2" id="project" required>
+    <option disabled selected value="">เลือกโครงการ</option>
+    <option value="ดิ อิเธอร์นิตี้ กรีนวู้ด รังสิต-วงแหวน">ดิ อิเธอร์นิตี้ กรีนวู้ด</option>
+  </select>
+
+  <input class="form-control mb-2" id="plot" placeholder="123/456" required>
+  <input class="form-control mb-2" id="name" placeholder="ชื่อ" required>
+
+  <!-- 🔥 แก้ -->
+  <input type="tel" class="form-control mb-2" id="tel" placeholder="0888888888" required>
+
+  <textarea class="form-control mb-2" id="defect" placeholder="รายละเอียด" required></textarea>
+
+  <!-- 🔥 แก้ -->
+  <input type="file" id="file" class="form-control mb-2"
+    accept="image/*" capture="environment" required>
+
+  <div class="text-center">
+    <button type="submit">ส่งข้อมูล</button>
   </div>
 
-  <!-- JS Scripts -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
+</form>
+</div>
 
-<script defer>
-  const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec';
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-  const projectPlotPrefixes = {
-    'เดอะ เชดด์ สาทร': '196/',
-    'ดิ อิเธอร์นิตี้ โกรฟ สายไหม': '32/',
-    'ดิ อิเธอร์นิตี้ เวอร์ดัวร์ พระราม 9': '141/',
-    'ดิ อิเธอร์นิตี้ กรีนวู้ด รังสิต-วงแหวน': '105/',
-    'อิเธอร์นิตี้ ทาวน์ พริมโรส วัชรพล': '545/',
-    'ดิ อิเธอร์นิตี้ อาร์ค สุขาภิบาล 5': '564/',
-    'เดอะ คราวน์ เรสซิเดนท์เซส พระราม 4': '1/',
-  };
+<script>
+const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec';
 
-  /*function resizeImage(file, maxSize = 1024) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const img = new Image();
-        img.onload = function () {
-          let width = img.width;
-          let height = img.height;
-          if (width > height && width > maxSize) {
-            height *= maxSize / width;
-            width = maxSize;
-          } else if (height > maxSize) {
-            width *= maxSize / height;
-            height = maxSize;
+// 🔥 resize แบบใหม่ (กันพังมือถือ)
+function resizeImage(file) {
+  return new Promise((resolve, reject) => {
+
+    if (file.size > 5 * 1024 * 1024) {
+      return reject("รูปใหญ่เกิน 5MB");
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = e => {
+      const img = new Image();
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          const MAX = 800;
+          let w = img.width;
+          let h = img.height;
+
+          if (w > h && w > MAX) {
+            h *= MAX / w;
+            w = MAX;
+          } else if (h > MAX) {
+            w *= MAX / h;
+            h = MAX;
           }
 
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          const base64 = canvas.toDataURL('image/jpeg', 0.7); // บีบอัด 70%
-          resolve(base64.replace(/^.*,/, ''));
-        };
-        img.onerror = reject;
-        img.src = event.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }*/
-  
-  function resizeImage(file, callback) {
-  // ❗ เช็คขนาดก่อน
-  if (file.size > 5 * 1024 * 1024) {
-    alert("รูปใหญ่เกิน 5MB กรุณาเลือกรูปใหม่");
-    return;
-  }
+          canvas.width = w;
+          canvas.height = h;
+          ctx.drawImage(img, 0, 0, w, h);
 
-  const reader = new FileReader();
+          const base64 = canvas.toDataURL("image/jpeg", 0.7);
+          resolve(base64.split(',')[1]);
 
-  reader.onload = function (e) {
-    const img = new Image();
-
-    img.onload = function () {
-      try {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 800;
-
-        let width = img.width;
-        let height = img.height;
-
-        // resize ให้เล็กลง
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
+        } catch (err) {
+          reject("แปลงรูปไม่สำเร็จ");
         }
+      };
 
-        canvas.width = width;
-        canvas.height = height;
-
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // ❗ บีบคุณภาพ
-        const base64 = canvas.toDataURL("image/jpeg", 0.7);
-
-        callback(base64);
-      } catch (err) {
-        alert("เกิดข้อผิดพลาดในการประมวลผลรูปภาพ");
-        console.error(err);
-      }
+      img.onerror = () => reject("ไฟล์รูปไม่รองรับ");
+      img.src = e.target.result;
     };
 
-    img.onerror = function () {
-      alert("รูปภาพไม่รองรับ กรุณาลองใหม่");
-    };
-
-    img.src = e.target.result;
-  };
-
-  reader.readAsDataURL(file);
+    reader.onerror = () => reject("อ่านไฟล์ไม่ได้");
+    reader.readAsDataURL(file);
+  });
 }
 
-  async function submit() {
-    const submitBtn = document.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
+// 🔥 submit
+async function submitForm() {
 
-    Swal.fire({
-      title: 'กำลังบันทึกข้อมูล',
-      text: 'กรุณารอสักครู่...',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); }
-    });
+  const btn = document.querySelector("button");
+  btn.disabled = true;
 
-    const fileInput = $('#file')[0];
-    if (fileInput.files.length === 0) {
-      Swal.close();
-      alert('กรุณาเลือกไฟล์รูปภาพ');
-      submitBtn.disabled = false;
+  Swal.fire({title:"กำลังส่ง...", allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+
+  try {
+
+    // 🔥 LIFF login
+    if (!liff.isLoggedIn()) {
+      liff.login();
       return;
     }
 
-    try {
-      const file = fileInput.files[0];
-      const resizedBase64 = await resizeImage(file);
+    const profile = await liff.getProfile();
 
-      const data = {
-        opt: 'savedata',
-        uid: liff.getDecodedIDToken().sub,
-        project: $('#project').val(),
-        plot: $('#plot').val(),
-        name: $('#name').val(),
-        tel: $('#tel').val(),
-        defect: $('#defect').val(),
-        file: resizedBase64,
-      };
+    const file = document.getElementById("file").files[0];
+    const base64 = await resizeImage(file);
 
-      $.ajax({
-        method: "POST",
-        url: scriptUrl,
-        data: data,
-        dataType: 'json',
-        success: function (res) {
-          Swal.close();
-          submitBtn.disabled = false;
-          if (res.status == 'success') {
-            $('#myForm')[0].reset();
-            Swal.fire({
-              icon: 'success',
-              title: 'บันทึกข้อมูลเรียบร้อย',
-              html: `
-                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 18px;">
-                  <div>เลขที่อ้างอิง</div>
-                  <div style="background-color: #ff5722; color: white; padding: 6px 14px; border-radius: 8px; font-weight: bold; font-size: 18px;">
-                    ${res.jobID}
-                  </div>
-                </div>
-              `,
-              confirmButtonText: 'ตกลง',
-              confirmButtonColor: '#00315F',
-              allowOutsideClick: false,
-            });
-          } else {
-            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', confirmButtonText: 'ตกลง' });
-          }
-        },
-        error: function () {
-          Swal.close();
-          submitBtn.disabled = false;
-          alert('บันทึกข้อมูลไม่สำเร็จ');
-        }
-      });
-    } catch (error) {
-      Swal.close();
-      submitBtn.disabled = false;
-      console.error(error);
-      alert('เกิดข้อผิดพลาดในการประมวลผลรูปภาพ');
-    }
+    const data = {
+      uid: profile.userId,
+      project: $("#project").val(),
+      plot: $("#plot").val(),
+      name: $("#name").val(),
+      tel: $("#tel").val(),
+      defect: $("#defect").val(),
+      file: base64
+    };
+
+    await $.ajax({
+      method: "POST",
+      url: scriptUrl,
+      data: JSON.stringify(data),
+      contentType: "application/json"
+    });
+
+    Swal.fire("สำเร็จ", "ส่งข้อมูลแล้ว", "success");
+    $("#myForm")[0].reset();
+
+  } catch (err) {
+    console.error(err);
+    Swal.fire("ผิดพลาด", err, "error");
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    liff.init({
-      liffId: '2007065360-n1loYJ1G',
-      withLoginOnExternalBrowser: true
-    }).then(() => {
-      console.log('liff ready');
-    });
+  btn.disabled = false;
+}
 
-    const forms = document.querySelectorAll('.needs-validation');
-    Array.from(forms).forEach(form => {
-      form.addEventListener('submit', event => {
-        event.preventDefault();
+// validate + submit
+document.getElementById("myForm").addEventListener("submit", function(e){
+  e.preventDefault();
 
-        const plotValue = $('#plot').val().trim();
-        const telValue = $('#tel').val().trim();
-        const projectValue = $('#project').val();
-        const expectedPrefix = projectPlotPrefixes[projectValue];
+  if (!this.checkValidity()) {
+    this.classList.add("was-validated");
+    return;
+  }
 
-        const plotRegex = /^[0-9]+\/[0-9]+$/;
-        const telRegex = /^0[0-9]{9}$/;
+  submitForm();
+});
 
-        if (!form.checkValidity()) {
-          form.classList.add('was-validated');
-          $('#myForm').find(":invalid").first().focus();
-        } else if (!plotRegex.test(plotValue)) {
-          Swal.fire('รูปแบบบ้านเลขที่ไม่ถูกต้อง', 'กรุณากรอกบ้านเลขที่ เช่น 123/456 โดยไม่มีตัวอักษร', 'warning');
-          $('#plot').focus();
-        } else if (expectedPrefix && !plotValue.startsWith(expectedPrefix)) {
-          Swal.fire('บ้านเลขที่ไม่ถูกต้อง', `บ้านเลขที่ของโครงการ "${projectValue}" ต้องขึ้นต้นด้วย "${expectedPrefix}"`, 'warning');
-          $('#plot').focus();
-        } else if (!telRegex.test(telValue)) {
-          Swal.fire('เบอร์โทรศัพท์ไม่ถูกต้อง', 'กรุณากรอกเบอร์โทรศัพท์ 10 หลัก โดยขึ้นต้นด้วย 0', 'warning');
-          $('#tel').focus();
-        } else {
-          submit();
-        }
-      }, false);
-    });
-  });
+// init LIFF
+document.addEventListener("DOMContentLoaded", () => {
+  liff.init({ liffId: "2007065360-n1loYJ1G" });
+});
 </script>
 
 </body>
-
 </html>
