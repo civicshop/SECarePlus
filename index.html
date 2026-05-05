@@ -196,61 +196,65 @@
     });
   }*/
   
-  function resizeImage(file, maxSize = 1024) {
-  return new Promise((resolve, reject) => {
+  function resizeImage(file, callback) {
+  // ❗ เช็คขนาดก่อน
+  if (file.size > 5 * 1024 * 1024) {
+    alert("รูปใหญ่เกิน 5MB กรุณาเลือกรูปใหม่");
+    return;
+  }
 
-    if (!file.type.startsWith('image/')) {
-      return reject(new Error('ไม่ใช่ไฟล์รูปภาพ'));
-    }
+  const reader = new FileReader();
 
-    const reader = new FileReader();
+  reader.onload = function (e) {
+    const img = new Image();
 
-    reader.onload = function (event) {
-      const img = new Image();
+    img.onload = function () {
+      try {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
 
-      img.onload = function () {
-        try {
-          let width = img.width;
-          let height = img.height;
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
 
-          if (width > height && width > maxSize) {
-            height *= maxSize / width;
-            width = maxSize;
-          } else if (height > maxSize) {
-            width *= maxSize / height;
-            height = maxSize;
+        let width = img.width;
+        let height = img.height;
+
+        // resize ให้เล็กลง
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
           }
-
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-
-          canvas.width = width;
-          canvas.height = height;
-
-          ctx.drawImage(img, 0, 0, width, height);
-
-          const base64 = canvas.toDataURL('image/jpeg', 0.7);
-
-          resolve(base64.split(',')[1]);
-
-        } catch (err) {
-          reject(err);
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
         }
-      };
 
-      img.onerror = function () {
-        reject(new Error('โหลดรูปไม่สำเร็จ (format อาจไม่รองรับ เช่น HEIC)'));
-      };
+        canvas.width = width;
+        canvas.height = height;
 
-      img.src = event.target.result;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // ❗ บีบคุณภาพ
+        const base64 = canvas.toDataURL("image/jpeg", 0.7);
+
+        callback(base64);
+      } catch (err) {
+        alert("เกิดข้อผิดพลาดในการประมวลผลรูปภาพ");
+        console.error(err);
+      }
     };
 
-    reader.onerror = function () {
-      reject(new Error('อ่านไฟล์ไม่สำเร็จ'));
+    img.onerror = function () {
+      alert("รูปภาพไม่รองรับ กรุณาลองใหม่");
     };
 
-    reader.readAsDataURL(file);
-  });
+    img.src = e.target.result;
+  };
+
+  reader.readAsDataURL(file);
 }
 
   async function submit() {
