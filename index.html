@@ -543,12 +543,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
-  <script defer>
+<script defer>
 const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec';
 
 let liffReady = false;
 
-// ================== RESIZE ==================
+// ================== RESIZE IMAGE ==================
 async function resizeImage(file, maxSize = 1024) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -575,7 +575,8 @@ async function resizeImage(file, maxSize = 1024) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        const base64 = canvas.toDataURL('image/jpeg', 0.7);
+        // 🔥 ลดคุณภาพกันมือถือพัง
+        const base64 = canvas.toDataURL('image/jpeg', 0.5);
         resolve(base64.replace(/^.*,/, ''));
       };
 
@@ -600,26 +601,24 @@ async function submit() {
   });
 
   try {
-    console.log("STEP 1");
-
-    // ✅ กัน LIFF ยังไม่พร้อม
+    // ❌ กันค้าง
     if (!liffReady) {
-      throw new Error("LIFF ยังไม่พร้อม กรุณารอสักครู่");
+      Swal.fire('ระบบยังโหลดไม่เสร็จ', 'กรุณารอสักครู่', 'warning');
+      submitBtn.disabled = false;
+      return;
     }
 
-    // ✅ บังคับ login
+    // ✅ login check
     if (!liff.isLoggedIn()) {
       liff.login();
       return;
     }
 
-    // ✅ ใช้ profile แทน token
+    // ✅ uid
     const profile = await liff.getProfile();
     const uid = profile.userId;
 
-    console.log("STEP 2 UID:", uid);
-
-    // ✅ เช็คไฟล์
+    // ✅ file check
     const fileInput = document.getElementById('file');
     if (!fileInput.files.length) {
       throw new Error("กรุณาเลือกไฟล์รูปภาพ");
@@ -627,11 +626,15 @@ async function submit() {
 
     const file = fileInput.files[0];
 
+    // 🔥 กันรูปใหญ่
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("ไฟล์ใหญ่เกิน 5MB");
+    }
+
     // ✅ resize
     const resizedBase64 = await resizeImage(file);
-    console.log("STEP 3 resize OK");
 
-    // ✅ เตรียมข้อมูล
+    // ✅ data
     const data = {
       opt: 'savedata',
       uid: uid,
@@ -643,14 +646,13 @@ async function submit() {
       file: resizedBase64,
     };
 
-    console.log("STEP 4 sending");
-
-    // ✅ ส่งข้อมูล
+    // ✅ API
     $.ajax({
       method: "POST",
       url: scriptUrl,
       data: data,
       dataType: 'json',
+
       success: function (res) {
         Swal.close();
         submitBtn.disabled = false;
@@ -675,12 +677,12 @@ async function submit() {
           throw new Error("API ไม่สำเร็จ");
         }
       },
-      error: function (err) {
+
+      error: function () {
         Swal.close();
         submitBtn.disabled = false;
-        console.error("AJAX ERROR:", err);
 
-        Swal.fire('Error', 'ส่งข้อมูลไม่สำเร็จ', 'error');
+        Swal.fire('Error', 'ส่งข้อมูลไม่สำเร็จ (เน็ตหรือเซิร์ฟเวอร์)', 'error');
       }
     });
 
@@ -688,7 +690,7 @@ async function submit() {
     Swal.close();
     submitBtn.disabled = false;
 
-    console.error("🔥 ERROR:", error);
+    console.error("ERROR:", error);
 
     Swal.fire({
       icon: 'error',
@@ -698,27 +700,61 @@ async function submit() {
   }
 }
 
-// ================== INIT ==================
-document.addEventListener("DOMContentLoaded", function () {
+// ================== INIT (หัวใจสำคัญ) ==================
+document.addEventListener("DOMContentLoaded", async function () {
 
   const submitBtn = document.querySelector('button[type="submit"]');
-  submitBtn.disabled = true; // ❌ ปิดไว้ก่อน
+  submitBtn.disabled = true;
 
-  liff.init({
-    liffId: '2007065360-n1loYJ1G',
-    withLoginOnExternalBrowser: true
-  }).then(() => {
+  // 🔒 lock screen
+  Swal.fire({
+    title: 'กำลังโหลดระบบ...',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
 
-    console.log("✅ LIFF READY");
+  try {
+    // ✅ กัน init ค้าง
+    await Promise.race([
+      liff.init({
+        liffId: '2007065360-n1loYJ1G',
+        withLoginOnExternalBrowser: true
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("LIFF init timeout")), 5000)
+      )
+    ]);
+
+    console.log("LIFF READY");
+
+    // ✅ login flow
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    // ✅ test profile
+    const profile = await liff.getProfile();
+    console.log("USER:", profile.userId);
+
+    // ✅ ready
     liffReady = true;
 
-    // ✅ เปิดปุ่มเมื่อพร้อม
+    Swal.close();
     submitBtn.disabled = false;
 
-  }).catch(err => {
-    console.error("LIFF INIT ERROR:", err);
-    Swal.fire('Error', 'LIFF โหลดไม่สำเร็จ', 'error');
-  });
+  } catch (err) {
+    console.error("LIFF ERROR:", err);
+
+    Swal.fire({
+      icon: 'error',
+      title: 'โหลดระบบไม่สำเร็จ',
+      text: 'กรุณาปิดแล้วเปิดใหม่ใน LINE'
+    });
+
+    // 🔁 reload กันค้าง
+    setTimeout(() => location.reload(), 3000);
+  }
 
   // ================== FORM ==================
   const forms = document.querySelectorAll('.needs-validation');
