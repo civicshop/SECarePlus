@@ -152,7 +152,7 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
 
 <script defer>
-  const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec';
+/*  const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec';
 
   const projectPlotPrefixes = {
     'เดอะ เชดด์ สาทร': '196/',
@@ -320,7 +320,229 @@ Stack: ${error.stack}
     });
   });
 </script>
+<script defer>
+const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec';
 
+let liffReady = false;
+
+// ================== RESIZE IMAGE ==================
+async function resizeImage(file, maxSize = 1024) {
+  try {
+    console.log("resize start");
+
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = function (event) {
+        const img = new Image();
+
+        img.onload = function () {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height && width > maxSize) {
+            height *= maxSize / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width *= maxSize / height;
+            height = maxSize;
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const base64 = canvas.toDataURL('image/jpeg', 0.7);
+          console.log("resize done");
+
+          resolve(base64.replace(/^.*,/, ''));
+        };
+
+        img.onerror = () => reject(new Error("Image load failed"));
+        img.src = event.target.result;
+      };
+
+      reader.onerror = () => reject(new Error("FileReader failed"));
+      reader.readAsDataURL(file);
+    });
+
+  } catch (err) {
+    console.error("resize error:", err);
+    throw err;
+  }
+}
+
+// ================== SUBMIT ==================
+async function submit() {
+  const submitBtn = document.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
+  Swal.fire({
+    title: 'กำลังบันทึกข้อมูล',
+    text: 'กรุณารอสักครู่...',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  try {
+    console.log("STEP 1: start");
+
+    // ✅ กัน LIFF ยังไม่พร้อม
+    if (!liffReady) {
+      throw new Error("LIFF ยังไม่พร้อม");
+    }
+
+    // ✅ บังคับ login
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    // ✅ เอา uid แบบเสถียร
+    const profile = await liff.getProfile();
+    const uid = profile.userId;
+
+    console.log("STEP 2: uid =", uid);
+
+    // ✅ เช็คไฟล์
+    const fileInput = document.getElementById('file');
+    if (!fileInput || fileInput.files.length === 0) {
+      throw new Error("กรุณาเลือกไฟล์รูปภาพ");
+    }
+
+    const file = fileInput.files[0];
+    console.log("STEP 3: file =", file.name);
+
+    // ✅ resize
+    const resizedBase64 = await resizeImage(file);
+    console.log("STEP 4: resize success");
+
+    // ✅ เตรียม data
+    const data = {
+      opt: 'savedata',
+      uid: uid,
+      project: $('#project').val(),
+      plot: $('#plot').val(),
+      name: $('#name').val(),
+      tel: $('#tel').val(),
+      defect: $('#defect').val(),
+      file: resizedBase64,
+    };
+
+    console.log("STEP 5: sending data");
+
+    // ✅ ยิง API
+    $.ajax({
+      method: "POST",
+      url: scriptUrl,
+      data: data,
+      dataType: 'json',
+      success: function (res) {
+        Swal.close();
+        submitBtn.disabled = false;
+
+        console.log("API response:", res);
+
+        if (res.status === 'success') {
+          $('#myForm')[0].reset();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'บันทึกข้อมูลเรียบร้อย',
+            html: `
+              <div style="display:flex;gap:10px;justify-content:center;">
+                <div>เลขที่อ้างอิง</div>
+                <div style="background:#ff5722;color:#fff;padding:6px 14px;border-radius:8px;">
+                  ${res.jobID}
+                </div>
+              </div>
+            `,
+            confirmButtonColor: '#00315F'
+          });
+
+        } else {
+          throw new Error("API ตอบกลับไม่สำเร็จ");
+        }
+      },
+      error: function (xhr) {
+        Swal.close();
+        submitBtn.disabled = false;
+
+        console.error("AJAX ERROR:", xhr);
+
+        Swal.fire('Error', 'ส่งข้อมูลไม่สำเร็จ', 'error');
+      }
+    });
+
+  } catch (error) {
+    Swal.close();
+    submitBtn.disabled = false;
+
+    console.error("🔥 ERROR:", error);
+
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด',
+      html: `
+        <div style="text-align:left;font-size:14px;">
+          <b>Message:</b><br>${error.message}<br><br>
+        </div>
+      `
+    });
+  }
+}
+
+// ================== INIT ==================
+document.addEventListener("DOMContentLoaded", function () {
+
+  liff.init({
+    liffId: '2007065360-n1loYJ1G',
+    withLoginOnExternalBrowser: true
+  }).then(() => {
+    liffReady = true;
+    console.log("✅ LIFF READY");
+
+  }).catch(err => {
+    console.error("LIFF INIT ERROR:", err);
+  });
+
+  // ================== FORM ==================
+  const forms = document.querySelectorAll('.needs-validation');
+
+  forms.forEach(form => {
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+
+      const plotValue = $('#plot').val().trim();
+      const telValue = $('#tel').val().trim();
+
+      const plotRegex = /^[0-9]+\/[0-9]+$/;
+      const telRegex = /^0[0-9]{9}$/;
+
+      if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+      }
+
+      if (!plotRegex.test(plotValue)) {
+        Swal.fire('รูปแบบบ้านเลขที่ไม่ถูกต้อง', '', 'warning');
+        return;
+      }
+
+      if (!telRegex.test(telValue)) {
+        Swal.fire('เบอร์โทรไม่ถูกต้อง', '', 'warning');
+        return;
+      }
+
+      submit();
+    });
+  });
+
+});
+</script>
 </body>
 
 </html>
