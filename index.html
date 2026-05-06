@@ -713,17 +713,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     didOpen: () => Swal.showLoading()
   });
 
-  try {
-    // ✅ กัน init ค้าง
-    await Promise.race([
-      liff.init({
-        liffId: '2007065360-n1loYJ1G',
-        withLoginOnExternalBrowser: true
-      }),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("LIFF init timeout")), 5000)
-      )
-    ]);
+try {
+  await liff.init({
+    liffId: '2007065360-n1loYJ1G'
+  });
+
+  console.log("LIFF init success");
+
+} catch (err) {
+  console.error("LIFF INIT ERROR FULL:", err);
+  alert("LIFF ERROR: " + JSON.stringify(err));
+}
 
     console.log("LIFF READY");
 
