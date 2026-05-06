@@ -266,11 +266,18 @@
         }
       });
     } catch (error) {
-      Swal.close();
-      submitBtn.disabled = false;
-      console.error(error);
-      alert('เกิดข้อผิดพลาดในการประมวลผลรูปภาพ');
-    }
+  Swal.close();
+  submitBtn.disabled = false;
+
+  console.error("🔥 ERROR:", error);
+
+  alert(`
+เกิดข้อผิดพลาดในการประมวลผลรูปภาพ
+
+Message: ${error.message}
+Stack: ${error.stack}
+  `);
+}
   }
 
   document.addEventListener("DOMContentLoaded", function () {
