@@ -90,10 +90,8 @@
 <body>
 	<!-- เพิ่มข้อมูล -->
 	<input type="hidden" id="jobId" />
-	<input type="hidden" id="project" />
 	<input type="hidden" id="uid" />
-	<input type="hidden" id="customer" value="ชื่อผู้ใช้" />
-
+	
     <div class="rating-group text-center">
       <h4>ระบบแจ้งซ่อม</h4>
       <div class="rating-stars" data-category="system">
@@ -128,9 +126,8 @@
     </div>
     <button type="submit" class="btn" id="submitRating" disabled>ส่งคะแนน</button>
   </div>
-	
-	<input type="hidden" id="plot" />
-	<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -178,17 +175,13 @@ function initPage() {
   const urlParams = new URLSearchParams(window.location.search);
 
   setVal('jobID', urlParams.get('jobID'));
-  setVal('project', urlParams.get('project'));
   setVal('uid', urlParams.get('uid'));
-  setVal('customer', urlParams.get('customer'));
-  setVal('plot', urlParams.get('plot'));
 }
 
 function setVal(id, val) {
   const el = document.getElementById(id);
   if (el) el.value = val || '';
 }
-
 
 // ==============================
 // ⭐ RATING
@@ -249,10 +242,7 @@ submitBtn.addEventListener('click', async () => {
   const payload = new URLSearchParams({
     opt: 'saverating',
     uid: uid,
-    project: urlParams.get('project') || '',
     jobID: urlParams.get('jobID') || '',
-    plot: urlParams.get('plot') || '',
-    customer: urlParams.get('customer') || '',
     system: scores.system,
     staff: scores.staff,
     quality: scores.quality
