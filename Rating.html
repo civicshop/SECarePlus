@@ -130,107 +130,172 @@
   </div>
 	
 	<input type="hidden" id="plot" />
-	
-  <!-- LIFF SDK -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  
-  <!-- JS -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-  
-  liff.init({ liffId: "2007065360-Myoply7Y" }).catch(err => {
-  console.error(err);
+	<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+let liffReady = false;
+let userId = '';
+
+// ==============================
+// ✅ INIT LIFF (สำคัญมาก)
+// ==============================
+async function initLIFF() {
+  try {
+    await liff.init({ liffId: "2007065360-Myoply7Y" });
+
+    if (liff.isLoggedIn()) {
+      const profile = await liff.getProfile();
+      userId = profile.userId;
+    }
+
+    liffReady = true;
+    console.log("LIFF ready");
+
+  } catch (err) {
+    console.error("LIFF init error:", err);
+    alert("โหลดระบบไม่สำเร็จ กรุณาเปิดผ่าน LINE");
+  }
+}
+
+initLIFF();
+
+
+// ==============================
+// ✅ GET PARAM
+// ==============================
+const urlParams = new URLSearchParams(window.location.search);
+
+document.getElementById('jobId').value = urlParams.get('jobId') || '';
+document.getElementById('project').value = urlParams.get('project') || '';
+document.getElementById('uid').value = urlParams.get('uid') || '';
+document.getElementById('customer').value = urlParams.get('customer') || '';
+document.getElementById('plot').value = urlParams.get('plot') || '';
+
+
+// ==============================
+// ⭐ RATING
+// ==============================
+const submitBtn = document.getElementById('submitRating');
+submitBtn.disabled = true;
+
+const scores = {
+  system: 0,
+  staff: 0,
+  quality: 0
+};
+
+document.querySelectorAll('.rating-stars').forEach(group => {
+  const category = group.getAttribute('data-category');
+  const stars = group.querySelectorAll('i');
+
+  stars.forEach(star => {
+    star.addEventListener('click', function () {
+      const score = parseInt(this.getAttribute('data-score'));
+      scores[category] = score;
+      updateStars(stars, score);
+      checkAllRated();
+    });
   });
+});
 
-	// ดึง query string จาก URL
-	const urlParams = new URLSearchParams(window.location.search);
-	document.getElementById('jobId').value = urlParams.get('jobId') || '';
-	document.getElementById('project').value = urlParams.get('project') || '';
-	document.getElementById('uid').value = urlParams.get('uid') || '';
-	document.getElementById('customer').value = urlParams.get('customer') || '';
-	document.getElementById('plot').value = urlParams.get('plot') || ''; // ✅ เพิ่มบรรทัดนี้
+function updateStars(stars, score) {
+  stars.forEach(star => {
+    const s = parseInt(star.getAttribute('data-score'));
+    star.classList.toggle('active', s <= score);
+  });
+}
 
-	
-	const submitBtn = document.getElementById('submitRating');
+function checkAllRated() {
+  const allRated = Object.values(scores).every(score => score > 0);
+  submitBtn.disabled = !allRated;
+}
+
+
+// ==============================
+// 🚀 SUBMIT
+// ==============================
+submitBtn.addEventListener('click', async () => {
+
+  if (!liffReady) {
+    alert("ระบบยังไม่พร้อม กรุณาลองใหม่");
+    return;
+  }
+
   submitBtn.disabled = true;
+  submitBtn.innerText = "กำลังส่ง...";
 
-    const scores = {
-      system: 0,
-      staff: 0,
-      quality: 0
-    };
+  const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec';
 
-    document.querySelectorAll('.rating-stars').forEach(group => {
-      const category = group.getAttribute('data-category');
-      const stars = group.querySelectorAll('i');
+  try {
+    // ==============================
+    // ✅ ใช้ userId จาก LIFF จริง
+    // ==============================
+    const uid = userId || urlParams.get('uid') || 'mock-uid';
 
-      stars.forEach(star => {
-        star.addEventListener('click', function () {
-          const score = parseInt(this.getAttribute('data-score'));
-          scores[category] = score;
-          updateStars(stars, score);
-          checkAllRated();
-        });
-      });
+    // ==============================
+    // ✅ ส่งข้อมูลก่อน (รอให้เสร็จ)
+    // ==============================
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      body: new URLSearchParams({
+        opt: 'saverating',
+        uid: uid,
+        project: urlParams.get('project') || '',
+        jobID: urlParams.get('jobId') || '',
+        plot: urlParams.get('plot') || '',
+        customer: urlParams.get('customer') || '',
+        system: scores.system,
+        staff: scores.staff,
+        quality: scores.quality
+      })
     });
 
-    function updateStars(stars, score) {
-      stars.forEach(star => {
-        const s = parseInt(star.getAttribute('data-score'));
-        star.classList.toggle('active', s <= score);
-      });
+    const result = await res.json();
+    console.log("GAS response:", result);
+
+    if (result.status !== 'success') {
+      throw new Error(result.message || 'บันทึกไม่สำเร็จ');
     }
 
-    function checkAllRated() {
-      const allRated = Object.values(scores).every(score => score > 0);
-      submitBtn.disabled = !allRated;
-    }
-
-    submitBtn.addEventListener('click', () => {
-      submitBtn.disabled = true;
-      submitBtn.innerText = "กำลังส่ง...";
-
-      Swal.fire({
+    // ==============================
+    // ✅ ค่อยโชว์ popup หลังบันทึกสำเร็จ
+    // ==============================
+    await Swal.fire({
       icon: 'success',
       title: 'ขอบคุณสำหรับการประเมิน',
       html: `
-      <div style="text-align:left">
-        ระบบแจ้งซ่อม: ${scores.system} ดาว<br/>
-        พนักงานที่ให้บริการ: ${scores.staff} ดาว<br/>
-        คุณภาพงานซ่อม: ${scores.quality} ดาว
-      </div>
-    `,
+        <div style="text-align:left">
+          ระบบแจ้งซ่อม: ${scores.system} ดาว<br/>
+          พนักงาน: ${scores.staff} ดาว<br/>
+          คุณภาพงาน: ${scores.quality} ดาว
+        </div>
+      `,
       confirmButtonColor: '#00315F'
-      }).then(() => {
-        if (liff.isInClient()) {
-          liff.closeWindow(); // ✅ ปิดกลับไปหน้า LINE
-        } else {
-          window.close(); // fallback (เผื่อเปิดใน browser)
-        }
-      });
-
-      // === ส่งไปยัง GAS ===
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec'; // เปลี่ยนตามจริง
-      const uid = urlParams.get('uid') || 'mock-uid';
-
-fetch(scriptUrl, {
-  method: 'POST',
-  body: new URLSearchParams({
-    opt: 'saverating',
-    uid: uid,
-    project: urlParams.get('project') || '',
-    jobID: urlParams.get('jobId') || '',
-    plot: urlParams.get('plot') || '',
-    customer: urlParams.get('customer') || '',
-    system: scores.system,
-    staff: scores.staff,
-    quality: scores.quality
-  })
-      }).finally(() => {
-        submitBtn.innerText = "ส่งคะแนนแล้ว";
-      });
     });
-  </script>
+
+    // ==============================
+    // ✅ ปิด LIFF
+    // ==============================
+    if (liff.isInClient()) {
+      liff.closeWindow();
+    }
+
+  } catch (err) {
+    console.error(err);
+
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด',
+      text: err.message
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.innerText = "ส่งคะแนน";
+  }
+});
+</script>
+  
 </body>
 
 </html>
