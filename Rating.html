@@ -138,19 +138,31 @@ let liffReady = false;
 let userId = '';
 
 // ==============================
-// ✅ INIT LIFF (สำคัญมาก)
+// ✅ INIT หลัง DOM โหลด
+// ==============================
+document.addEventListener("DOMContentLoaded", async () => {
+  await initLIFF();
+  initPage();
+});
+
+
+// ==============================
+// ✅ INIT LIFF
 // ==============================
 async function initLIFF() {
   try {
     await liff.init({ liffId: "2007065360-Myoply7Y" });
 
-    if (liff.isLoggedIn()) {
-      const profile = await liff.getProfile();
-      userId = profile.userId;
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
     }
 
+    const profile = await liff.getProfile();
+    userId = profile.userId;
+
     liffReady = true;
-    console.log("LIFF ready");
+    console.log("LIFF ready:", userId);
 
   } catch (err) {
     console.error("LIFF init error:", err);
@@ -158,19 +170,24 @@ async function initLIFF() {
   }
 }
 
-initLIFF();
-
 
 // ==============================
-// ✅ GET PARAM
+// ✅ INIT PAGE
 // ==============================
-const urlParams = new URLSearchParams(window.location.search);
+function initPage() {
+  const urlParams = new URLSearchParams(window.location.search);
 
-document.getElementById('jobId').value = urlParams.get('jobId') || '';
-document.getElementById('project').value = urlParams.get('project') || '';
-document.getElementById('uid').value = urlParams.get('uid') || '';
-document.getElementById('customer').value = urlParams.get('customer') || '';
-document.getElementById('plot').value = urlParams.get('plot') || '';
+  setVal('jobId', urlParams.get('jobId'));
+  setVal('project', urlParams.get('project'));
+  setVal('uid', urlParams.get('uid'));
+  setVal('customer', urlParams.get('customer'));
+  setVal('plot', urlParams.get('plot'));
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val || '';
+}
 
 
 // ==============================
@@ -207,13 +224,12 @@ function updateStars(stars, score) {
 }
 
 function checkAllRated() {
-  const allRated = Object.values(scores).every(score => score > 0);
-  submitBtn.disabled = !allRated;
+  submitBtn.disabled = !Object.values(scores).every(s => s > 0);
 }
 
 
 // ==============================
-// 🚀 SUBMIT
+// 🚀 SUBMIT (กัน request หาย)
 // ==============================
 submitBtn.addEventListener('click', async () => {
 
@@ -226,67 +242,60 @@ submitBtn.addEventListener('click', async () => {
   submitBtn.innerText = "กำลังส่ง...";
 
   const scriptUrl = 'https://script.google.com/macros/s/AKfycbygcn50APZCGEMe1CsNTPb-Soe_XZ_uMWAqeB-oTSs5J4iVb5R353SLz0ZSsTTIv7kP/exec';
+  const urlParams = new URLSearchParams(window.location.search);
+
+  const uid = userId || urlParams.get('uid') || 'mock-uid';
+
+  const payload = new URLSearchParams({
+    opt: 'saverating',
+    uid: uid,
+    project: urlParams.get('project') || '',
+    jobID: urlParams.get('jobId') || '',
+    plot: urlParams.get('plot') || '',
+    customer: urlParams.get('customer') || '',
+    system: scores.system,
+    staff: scores.staff,
+    quality: scores.quality
+  });
 
   try {
     // ==============================
-    // ✅ ใช้ userId จาก LIFF จริง
+    // ✅ timeout กันค้าง
     // ==============================
-    const uid = userId || urlParams.get('uid') || 'mock-uid';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
-    // ==============================
-    // ✅ ส่งข้อมูลก่อน (รอให้เสร็จ)
-    // ==============================
     const res = await fetch(scriptUrl, {
       method: 'POST',
-      body: new URLSearchParams({
-        opt: 'saverating',
-        uid: uid,
-        project: urlParams.get('project') || '',
-        jobID: urlParams.get('jobId') || '',
-        plot: urlParams.get('plot') || '',
-        customer: urlParams.get('customer') || '',
-        system: scores.system,
-        staff: scores.staff,
-        quality: scores.quality
-      })
+      body: payload,
+      signal: controller.signal
     });
 
+    clearTimeout(timeout);
+
     const result = await res.json();
-    console.log("GAS response:", result);
+    console.log("GAS:", result);
 
     if (result.status !== 'success') {
       throw new Error(result.message || 'บันทึกไม่สำเร็จ');
     }
 
-    // ==============================
-    // ✅ ค่อยโชว์ popup หลังบันทึกสำเร็จ
-    // ==============================
     await Swal.fire({
       icon: 'success',
       title: 'ขอบคุณสำหรับการประเมิน',
-      html: `
-        <div style="text-align:left">
-          ระบบแจ้งซ่อม: ${scores.system} ดาว<br/>
-          พนักงาน: ${scores.staff} ดาว<br/>
-          คุณภาพงาน: ${scores.quality} ดาว
-        </div>
-      `,
       confirmButtonColor: '#00315F'
     });
 
-    // ==============================
-    // ✅ ปิด LIFF
-    // ==============================
     if (liff.isInClient()) {
       liff.closeWindow();
     }
 
   } catch (err) {
-    console.error(err);
+    console.error("ERROR:", err);
 
     Swal.fire({
       icon: 'error',
-      title: 'เกิดข้อผิดพลาด',
+      title: 'ส่งไม่สำเร็จ',
       text: err.message
     });
 
