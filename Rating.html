@@ -29,7 +29,7 @@
 
     .container {
       max-width: 500px;
-      margin-top: 50px;
+      margin-top: 10px;
     }
 
     .rating-group {
@@ -55,6 +55,18 @@
       padding: 10px 30px;
       font-size: 18px;
     }
+    
+    button[type="submit"]:disabled {
+      background-color: #ccc !important;
+      color: #666 !important;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    button[type="submit"]:not(:disabled):hover {
+      background-color: #00315F;
+      color: white;
+    }
 
     .footer {
       text-align: center;
@@ -69,7 +81,7 @@
     <h2>ให้คะแนนการบริการ</h2>
 
   <p class="text-sub" id="subTitle">
-  เพื่อปรับปรุงการให้บริการให้ดียิ่งขึ้น น้องแคร์รบกวนช่วยให้คะแนนความพึงพอใจในการรับบริการครั้งนี้ด้วยนะคะ
+  เพื่อปรับปรุงการบริการให้ดียิ่งขึ้น น้องแคร์รบกวนช่วยให้คะแนนความพึงพอใจในการรับบริการครั้งนี้ด้วยนะคะ
 </p>
 </center>
     
@@ -119,10 +131,17 @@
 	
 	<input type="hidden" id="plot" />
 	
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  
   <!-- JS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    
+  
+  liff.init({ liffId: "2007065360-Myoply7Y" }).catch(err => {
+  console.error(err);
+  });
+
 	// ดึง query string จาก URL
 	const urlParams = new URLSearchParams(window.location.search);
 	document.getElementById('jobId').value = urlParams.get('jobId') || '';
@@ -133,6 +152,8 @@
 
 	
 	const submitBtn = document.getElementById('submitRating');
+  submitBtn.disabled = true;
+
     const scores = {
       system: 0,
       staff: 0,
@@ -170,16 +191,22 @@
       submitBtn.innerText = "กำลังส่ง...";
 
       Swal.fire({
-        icon: 'success',
-        title: 'ขอบคุณสำหรับการประเมิน',
-        html: `
-          <div style="text-align:left">
-            ระบบแจ้งซ่อม: ${scores.system} ดาว<br/>
-            พนักงานที่ให้บริการ: ${scores.staff} ดาว<br/>
-            คุณภาพงานซ่อม: ${scores.quality} ดาว
-          </div>
-        `,
-        confirmButtonColor: '#00315F'
+      icon: 'success',
+      title: 'ขอบคุณสำหรับการประเมิน',
+      html: `
+      <div style="text-align:left">
+        ระบบแจ้งซ่อม: ${scores.system} ดาว<br/>
+        พนักงานที่ให้บริการ: ${scores.staff} ดาว<br/>
+        คุณภาพงานซ่อม: ${scores.quality} ดาว
+      </div>
+    `,
+      confirmButtonColor: '#00315F'
+      }).then(() => {
+        if (liff.isInClient()) {
+          liff.closeWindow(); // ✅ ปิดกลับไปหน้า LINE
+        } else {
+          window.close(); // fallback (เผื่อเปิดใน browser)
+        }
       });
 
       // === ส่งไปยัง GAS ===
