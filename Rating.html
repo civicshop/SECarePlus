@@ -177,7 +177,7 @@ async function initLIFF() {
 function initPage() {
   const urlParams = new URLSearchParams(window.location.search);
 
-  setVal('jobId', urlParams.get('jobId'));
+  setVal('jobID', urlParams.get('jobID'));
   setVal('project', urlParams.get('project'));
   setVal('uid', urlParams.get('uid'));
   setVal('customer', urlParams.get('customer'));
@@ -250,7 +250,7 @@ submitBtn.addEventListener('click', async () => {
     opt: 'saverating',
     uid: uid,
     project: urlParams.get('project') || '',
-    jobID: urlParams.get('jobId') || '',
+    jobID: urlParams.get('jobID') || '',
     plot: urlParams.get('plot') || '',
     customer: urlParams.get('customer') || '',
     system: scores.system,
