@@ -198,89 +198,91 @@
     });
   }
 
-  async function submit() {
-    const submitBtn = document.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
+async function submit() {
+  try {
+    console.log("=== START SUBMIT ===");
 
-    Swal.fire({
-      title: 'กำลังบันทึกข้อมูล',
-      text: 'กรุณารอสักครู่...',
-      allowOutsideClick: false,
-      didOpen: () => { Swal.showLoading(); }
+    // ✅ กันกดซ้ำ
+    const btn = document.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+
+    // ✅ timeout กันค้าง
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal
     });
 
-    const fileInput = $('#file')[0];
-    if (fileInput.files.length === 0) {
-      Swal.close();
-      alert('กรุณาเลือกไฟล์รูปภาพ');
-      submitBtn.disabled = false;
-      return;
+    clearTimeout(timeout);
+
+    console.log("STATUS:", res.status);
+
+    // ❌ ถ้า HTTP ไม่ใช่ 200 ให้หยุดเลย
+    if (!res.ok) {
+      throw new Error("HTTP ERROR: " + res.status);
     }
 
+    const text = await res.text();
+    console.log("RAW RESPONSE:", text);
+
+    let data;
     try {
-      const file = fileInput.files[0];
-      const resizedBase64 = await resizeImage(file);
+      // ✅ trim กัน space / newline
+      data = JSON.parse(text.trim());
+    } catch (e) {
+      console.error("❌ JSON PARSE ERROR:", text);
+      throw new Error("Response ไม่ใช่ JSON");
+    }
 
-      const data = {
-        opt: 'savedata',
-        uid: liff.getDecodedIDToken().sub,
-        project: $('#project').val(),
-        plot: $('#plot').val(),
-        name: $('#name').val(),
-        tel: $('#tel').val(),
-        defect: $('#defect').val(),
-        file: resizedBase64,
-      };
+    console.log("PARSED:", data);
 
-      $.ajax({
-        method: "POST",
-        url: scriptUrl,
-        data: data,
-        dataType: 'json',
-        success: function (res) {
-          Swal.close();
-          submitBtn.disabled = false;
-          if (res.status == 'success') {
-            $('#myForm')[0].reset();
-            Swal.fire({
-              icon: 'success',
-              title: 'บันทึกข้อมูลเรียบร้อย',
-              html: `
-                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 18px;">
-                  <div>เลขที่อ้างอิง</div>
-                  <div style="background-color: #ff5722; color: white; padding: 6px 14px; border-radius: 8px; font-weight: bold; font-size: 18px;">
-                    ${res.jobID}
-                  </div>
-                </div>
-              `,
-              confirmButtonText: 'ตกลง',
-              confirmButtonColor: '#00315F',
-              allowOutsideClick: false,
-            });
-          } else {
-            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', confirmButtonText: 'ตกลง' });
-          }
-        },
-        error: function () {
-          Swal.close();
-          submitBtn.disabled = false;
-          alert('บันทึกข้อมูลไม่สำเร็จ');
-        }
-      });
-    } catch (error) {
-  Swal.close();
-  submitBtn.disabled = false;
+    // ❌ ถ้า GAS ตอบไม่ success
+    if (!data || data.status !== 'success') {
+      throw new Error(data?.message || "GAS error");
+    }
 
-  console.error("🔥 ERROR:", error);
+    console.log("✅ SUCCESS FLOW");
 
-  alert(`
-เกิดข้อผิดพลาดในการประมวลผลรูปภาพ
+    // ✅ success UI
+    await Swal.fire({
+      icon: 'success',
+      title: 'ส่งข้อมูลสำเร็จ',
+      timer: 1500,
+      showConfirmButton: false
+    });
 
-Message: ${error.message}
-Stack: ${error.stack}
-  `);
-}
+    // ✅ (สำคัญ) ปิด LIFF ถ้าอยู่ใน LINE
+    if (window.liff && liff.isInClient()) {
+      liff.closeWindow();
+    }
+
+  } catch (err) {
+    console.error("🔥 ERROR:", err);
+
+    let msg = err.message;
+
+    // ✅ แยก error ให้ user เข้าใจ
+    if (err.name === 'AbortError') {
+      msg = "ระบบใช้เวลานานเกินไป กรุณาลองใหม่";
+    } else if (msg.includes("Failed to fetch")) {
+      msg = "การเชื่อมต่อมีปัญหา (อินเทอร์เน็ต/LINE)";
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด',
+      text: msg
+    });
+
+  } finally {
+    // ✅ เปิดปุ่มกลับ
+    const btn = document.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = false;
   }
+}
 
   document.addEventListener("DOMContentLoaded", function () {
     liff.init({
