@@ -257,13 +257,36 @@
               allowOutsideClick: false,
             });
           } else {
-            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', confirmButtonText: 'ตกลง' });
+            Swal.fire({
+              icon: 'error',
+              title: 'เกิดข้อผิดพลาด',
+              text: res.message || JSON.stringify(res),
+              confirmButtonText: 'ตกลง'
+            });
           }
         },
-        error: function () {
+        error: function (xhr, status, error) {
           Swal.close();
           submitBtn.disabled = false;
-          alert('บันทึกข้อมูลไม่สำเร็จ');
+
+          console.error("AJAX ERROR:", xhr);
+  
+          let msg = `
+          บันทึกข้อมูลไม่สำเร็จ
+
+          Status: ${status}
+          Error: ${error}
+          `;
+
+            if (xhr.responseText) {
+              msg += `\nResponse: ${xhr.responseText}`;
+            }
+
+          Swal.fire({
+            icon: 'error',
+            title: 'ส่งข้อมูลไม่สำเร็จ',
+            text: msg
+          });
         }
       });
     } catch (error) {
