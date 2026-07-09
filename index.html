@@ -230,31 +230,12 @@
         defect: $('#defect').val(),
         file: resizedBase64,
       };
-      console.log("📦 PAYLOAD BEFORE SEND:", data);
-      console.log("📝 DEFECT RAW:", $('#defect').val());
-      
-     $.ajax({
-      method: "POST",
-      url: scriptUrl,
 
-      // 🔥 สำคัญ: บอกว่าเราส่ง JSON
-      contentType: "application/json",
-
-      // 🔥 สำคัญที่สุด: stringify
-      data: JSON.stringify({
-      opt: 'savedata',
-      uid: liff.getDecodedIDToken().sub,
-      project: $('#project').val().trim(),
-      plot: $('#plot').val().trim(),
-      name: $('#name').val().trim(),
-      tel: $('#tel').val().trim(),
-      defect: $('#defect').val().trim(), // ✅ Enter รอดแล้ว
-      file: resizedBase64,
-      }),
-
-      // (optional แต่แนะนำ)
-      dataType: 'json',
-   
+      $.ajax({
+        method: "POST",
+        url: scriptUrl,
+        data: data,
+        dataType: 'json',
         success: function (res) {
           Swal.close();
           submitBtn.disabled = false;
